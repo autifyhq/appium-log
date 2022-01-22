@@ -1,12 +1,7 @@
-type Timestamp = {
-  /** absolute date */
-  date: Date;
-  /** duration from start */
-  second: number;
-};
+import { DateFns } from "../deps.ts";
 
 export type AppiumLogEntry = {
-  timestamp: Timestamp;
+  timestamp: Date;
   category: string;
   body: string;
 };
@@ -24,29 +19,17 @@ export const parseAppiumLog = (log: string): AppiumLog => {
       return null;
     }
 
-    const [date, category, body = ""] = match;
-    return {
-      date,
+    const [_, date, category, body = ""] = match;
+    const entry: AppiumLogEntry = {
+      timestamp: DateFns.parse(
+        date + " Z",
+        "yyyy-MM-dd HH:mm:ss:SSS X",
+        new Date(),
+      ),
       category,
       body,
     };
-  }).map((entry, _, entries) => {
-    if (!entry) {
-      return null;
-    }
-
-    const { date, category, body } = entry;
-    const first = entries[0]!;
-    const timestamp: Timestamp = {
-      date: new Date(date),
-      second: (new Date(date).getTime() - new Date(first.date).getTime()) /
-        1000,
-    };
-    return {
-      timestamp,
-      category,
-      body,
-    };
+    return entry;
   })
     .filter((entry): entry is AppiumLogEntry => Boolean(entry));
 

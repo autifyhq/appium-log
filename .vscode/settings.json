@@ -1,4 +1,5 @@
 {
   "deno.enable": true,
+  "deno.codeLens.test": false,
   "deno.config": "./tsconfig.json"
 }
