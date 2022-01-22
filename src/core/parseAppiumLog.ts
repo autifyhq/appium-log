@@ -1,4 +1,4 @@
-import { DateFns, uuid } from "../deps.ts";
+import { DateFns } from "../deps.ts";
 
 export type AppiumLogRawEntry = {
   date: Date;
@@ -41,7 +41,7 @@ export type AppiumLog = {
 };
 
 // yyyy-MM-dd HH:mm:ss:SSS [Category] log body
-const LOG_LINE_PATTERN = /(\d+-\d+-\d+ \d+:\d+:\d+:\d+) \[(.+)\] (.+)/;
+const LOG_LINE_PATTERN = /(\d+-\d+-\d+ \d+:\d+:\d+:\d+) \[(.+?)\] (.+)/;
 
 export const _parseToRawEntry = (log: string): AppiumLogRawEntry[] => {
   const lines = log.split("\n");
@@ -125,13 +125,16 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]) => {
   }
 
   const startDate = rawEntries[0].date.getTime();
-  let currentHttpRequestId: string | null = null;
+  // provide context for current http request
+  let httpRequestIdStack: string[] = [];
+  // to tell the previous entry is http request starting
+  let isRequestStarting = false;
 
   for (const rawEntry of rawEntries) {
     const { date, category, body } = rawEntry;
     const timestamp: Timestamp = {
       date,
-      seconds: (startDate - date.getTime()) / 1000,
+      seconds: (date.getTime() - startDate) / 1000,
     };
     const entry: AppiumLogEntry = {
       timestamp,
@@ -141,7 +144,7 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]) => {
     if (_isHttpRequestStarting(rawEntry)) {
       const { method, path } = _parseRequestStart(rawEntry.body);
       const request: AppiumLogHttpRequest = {
-        id: uuid(),
+        id: `${date.toISOString()} ${method} ${path}`,
         method,
         path,
         request: {
@@ -149,41 +152,61 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]) => {
         },
       };
 
-      currentHttpRequestId = request.id;
+      httpRequestIdStack.push(request.id);
       httpRequests.set(request.id, request);
       entry.http = {
-        requestId: currentHttpRequestId,
+        requestId: request.id,
         starting: true,
       };
+      isRequestStarting = true;
     } else if (_isHttpRequestEnding(rawEntry)) {
-      if (!currentHttpRequestId) {
+      if (httpRequestIdStack.length === 0) {
         throw new Error("http request is finished before starting");
-      }
-
-      const request = httpRequests.get(currentHttpRequestId);
-      if (!request) {
-        throw new Error(`http request not found: ${currentHttpRequestId}`);
       }
 
       const { method, path, status, millisecond } = _parseRequestEnd(
         rawEntry.body,
       );
 
-      // TODO: check method and path equal with the current requst
+      // find the corresponding http request
+      let request: AppiumLogHttpRequest | null = null;
+      // NOTE: if requests with the same method and path started concurrently,
+      // it might fail to find the correct corresponding request
+      for (const id of [...httpRequestIdStack].reverse()) {
+        const candidate = httpRequests.get(id)!;
+        if (candidate.method === method && candidate.path === path) {
+          request = candidate;
+        }
+      }
+      if (!request) {
+        throw new Error(
+          `Could not found the starting http request log for ${method} ${path}`,
+        );
+      }
+
+      httpRequestIdStack = httpRequestIdStack.filter((id) =>
+        id !== request!.id
+      );
 
       request.response = {
         status,
         millisecond,
       };
       entry.http = {
-        requestId: currentHttpRequestId,
+        requestId: request.id,
         finishing: true,
       };
-    } else if (currentHttpRequestId) {
-      entry.http = {
-        requestId: currentHttpRequestId,
-      };
+    } else if (isRequestStarting) {
+      // this entry must describe the request body
+      const requestId = httpRequestIdStack[httpRequestIdStack.length - 1];
+      const request = httpRequests.get(requestId)!;
+      request.request.body = body;
+      isRequestStarting = false;
+      // skip to add to entries
+      continue;
     }
+
+    entries.push(entry);
   }
 
   return {
