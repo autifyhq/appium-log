@@ -108,7 +108,7 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]) => {
     };
     if (_isHttpRequestStarting(rawEntry)) {
       const request: AppiumLogHttpRequest = {
-        id: uuid.v4(),
+        id: uuid(),
         // TODO
         method: "GET",
         path: "/",
