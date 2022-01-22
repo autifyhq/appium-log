@@ -1,7 +1,9 @@
 import { assertEquals } from "../testing.ts";
 import {
-  _isHttpRequestFinishing,
+  _isHttpRequestEnding,
   _isHttpRequestStarting,
+  _parseRequestEnd,
+  _parseRequestStart,
   _parseToRawEntry,
   AppiumLogRawEntry,
 } from "./parseAppiumLog.ts";
@@ -31,13 +33,37 @@ Deno.test("_isHttpRequestStarting()", () => {
   );
 });
 
-Deno.test("_isHttpRequestFinishing()", () => {
+Deno.test("_isHttpRequestEnding()", () => {
   assertEquals(
-    _isHttpRequestFinishing({
+    _isHttpRequestEnding({
       date: new Date(),
       body: "<-- GET /wd/hub/session/xxx/screenshot",
       category: "HTTP",
     }),
     true,
+  );
+});
+
+Deno.test("_parseRequestStart()", () => {
+  assertEquals(
+    _parseRequestStart("--> GET /wd/hub/session/xxx/screenshot"),
+    {
+      method: "GET",
+      path: "/wd/hub/session/xxx/screenshot",
+    },
+  );
+});
+
+Deno.test("_parseRequestEnd()", () => {
+  assertEquals(
+    _parseRequestEnd(
+      "<-- GET /wd/hub/session/xxx/screenshot 200 228 ms - 238976",
+    ),
+    {
+      method: "GET",
+      path: "/wd/hub/session/xxx/screenshot",
+      status: 200,
+      millisecond: 228,
+    },
   );
 });

@@ -69,17 +69,49 @@ export const _parseToRawEntry = (log: string): AppiumLogRawEntry[] => {
 };
 
 const HTTP_CATEGORY = "HTTP";
-const HTTP_REQUEST_START_PATTERN = "--> ";
-const HTTP_REQUEST_FINISH_PATTERN = "<-- ";
+const HTTP_REQUEST_START_PREFIX = "--> ";
+const HTTP_REQUEST_END_PREFIX = "<-- ";
+// --> GET /wd/hub/session/xxx/screenshot
+const HTTP_REQUEST_START_PATTERN = /^--> (\w+) (\S+)/;
+// <-- GET /wd/hub/session/xxx/screenshot 200 162 ms - 170916
+const HTTP_REQUEST_END_PATTERN = /^<-- (\w+) (\S+) (\d+) (\d+) ms/;
 
 export const _isHttpRequestStarting = (entry: AppiumLogRawEntry): boolean => {
   return entry.category === HTTP_CATEGORY &&
-    entry.body.startsWith(HTTP_REQUEST_START_PATTERN);
+    entry.body.startsWith(HTTP_REQUEST_START_PREFIX);
 };
 
-export const _isHttpRequestFinishing = (entry: AppiumLogRawEntry): boolean => {
+export const _isHttpRequestEnding = (entry: AppiumLogRawEntry): boolean => {
   return entry.category === HTTP_CATEGORY &&
-    entry.body.startsWith(HTTP_REQUEST_FINISH_PATTERN);
+    entry.body.startsWith(HTTP_REQUEST_END_PREFIX);
+};
+
+export const _parseRequestStart = (entryBody: string) => {
+  const match = HTTP_REQUEST_START_PATTERN.exec(entryBody);
+  if (!match) {
+    throw new Error(`Not a http request starting pattern: ${entryBody}`);
+  }
+
+  const [_, method, path] = match;
+  return {
+    method,
+    path,
+  };
+};
+
+export const _parseRequestEnd = (entryBody: string) => {
+  const match = HTTP_REQUEST_END_PATTERN.exec(entryBody);
+  if (!match) {
+    throw new Error(`Not a http request ending pattern: ${entryBody}`);
+  }
+
+  const [_, method, path, status, millisecond] = match;
+  return {
+    method,
+    path,
+    status: Number(status),
+    millisecond: Number(millisecond),
+  };
 };
 
 export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]) => {
@@ -107,13 +139,13 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]) => {
       body,
     };
     if (_isHttpRequestStarting(rawEntry)) {
+      const { method, path } = _parseRequestStart(rawEntry.body);
       const request: AppiumLogHttpRequest = {
         id: uuid(),
-        // TODO
-        method: "GET",
-        path: "/",
+        method,
+        path,
         request: {
-          body: "",
+          body: "", // will be set at the next entry
         },
       };
 
@@ -123,7 +155,7 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]) => {
         requestId: currentHttpRequestId,
         starting: true,
       };
-    } else if (_isHttpRequestFinishing(rawEntry)) {
+    } else if (_isHttpRequestEnding(rawEntry)) {
       if (!currentHttpRequestId) {
         throw new Error("http request is finished before starting");
       }
@@ -133,10 +165,15 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]) => {
         throw new Error(`http request not found: ${currentHttpRequestId}`);
       }
 
+      const { method, path, status, millisecond } = _parseRequestEnd(
+        rawEntry.body,
+      );
+
+      // TODO: check method and path equal with the current requst
+
       request.response = {
-        // TODO
-        status: 200,
-        millisecond: 0,
+        status,
+        millisecond,
       };
       entry.http = {
         requestId: currentHttpRequestId,
