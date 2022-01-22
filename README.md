@@ -14,7 +14,7 @@ After cloning this project, just following command bundles TSX files into a bund
 
 
 ```sh
-deno bundle -c tsconfig.json src/entrypoint.tsx public/bundle.js
+deno bundle -c deno.jsonc src/entrypoint.tsx public/bundle.js
 ```
 
 And you can see the result by serving the `public/` folder.
