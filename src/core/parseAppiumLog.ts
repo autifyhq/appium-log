@@ -6,13 +6,13 @@ export type AppiumLogRawEntry = {
   body: string;
 };
 
-type Timestamp = {
+export type AppiumLogTimestamp = {
   date: Date;
   seconds: number;
 };
 
 export type AppiumLogEntry = {
-  timestamp: Timestamp;
+  timestamp: AppiumLogTimestamp;
   category: string;
   body: string;
   http?: {
@@ -26,6 +26,7 @@ export type AppiumLogHttpRequest = {
   id: string;
   method: string;
   path: string;
+  shortPath?: string;
   request: {
     body: string;
   };
@@ -99,6 +100,17 @@ export const _parseRequestStart = (entryBody: string) => {
   };
 };
 
+// Get "/element" from "/wd/hub/session/:session_id/element"
+const SHORT_PATH_PATTERN = /session\/[^/]+(\/.+)/;
+const _getShortPath = (path: string): string | undefined => {
+  const matched = SHORT_PATH_PATTERN.exec(path);
+  if (!matched) {
+    return undefined;
+  }
+  const [_, shortPath] = matched;
+  return shortPath;
+};
+
 export const _parseRequestEnd = (entryBody: string) => {
   const match = HTTP_REQUEST_END_PATTERN.exec(entryBody);
   if (!match) {
@@ -132,7 +144,7 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]) => {
 
   for (const rawEntry of rawEntries) {
     const { date, category, body } = rawEntry;
-    const timestamp: Timestamp = {
+    const timestamp: AppiumLogTimestamp = {
       date,
       seconds: (date.getTime() - startDate) / 1000,
     };
@@ -147,6 +159,7 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]) => {
         id: `${date.toISOString()} ${method} ${path}`,
         method,
         path,
+        shortPath: _getShortPath(path),
         request: {
           body: "", // will be set at the next entry
         },
