@@ -1,0 +1,19 @@
+{
+  "$schema": "https://deno.land/x/denon/schema.json",
+  "scripts": {
+    "watch": "deno bundle --no-check -c deno_build.jsonc src/entrypoint.tsx public/bundle.js"
+  },
+  "watcher": {
+    "interval": 100,
+    "match": [
+      "src/**/*.*"
+    ],
+    "exts": [
+      "ts",
+      "tsx"
+    ],
+    "skip": [
+      "src/**/*.test.ts"
+    ]
+  }
+}
