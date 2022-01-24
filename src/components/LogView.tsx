@@ -74,7 +74,6 @@ const ExpandableJson: React.VFC<{ json: string }> = ({ json }) => {
   };
   const formatted = React.useMemo(() => {
     try {
-      console.log({ json });
       return expanded ? JSON.stringify(JSON.parse(json), null, 2) : json;
     } catch (err) {
       console.error(err);
@@ -144,7 +143,7 @@ const RequestBar: React.VFC<{ requestId: string }> = ({ requestId }) => {
         return;
       }
 
-      const top = startRect.height / 2 - 4;
+      const top = endRect.height / 2 - 4;
       const height = endRect.y - startRect.y + 8;
       setPosition({ height, top });
     }, 100);
