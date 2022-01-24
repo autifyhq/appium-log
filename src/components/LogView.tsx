@@ -34,7 +34,7 @@ const RequestFinishingIcon = () => (
     <i className="fas fa-arrow-left"></i>
   </span>
 );
-const PathExpantionButton: React.VFC<
+const ExpantionButton: React.VFC<
   { expanded: boolean; onClick: () => void }
 > = ({ expanded, onClick }) => {
   return (
@@ -58,7 +58,7 @@ const ExpandablePath: React.VFC<{ path: string; shortPath?: string }> = (
   return shortPath
     ? (
       <>
-        <PathExpantionButton expanded={expanded} onClick={toggleExpanded} />
+        <ExpantionButton expanded={expanded} onClick={toggleExpanded} />
         {expanded
           ? <code className="is-size-6">{path}</code>
           : <code className="is-size-6">{shortPath}</code>}
@@ -67,14 +67,42 @@ const ExpandablePath: React.VFC<{ path: string; shortPath?: string }> = (
     : <code className="is-size-6">{path}</code>;
 };
 
+const ExpandableJson: React.VFC<{ json: string }> = ({ json }) => {
+  const [expanded, setExpanded] = React.useState(false);
+  const toggleExpanded = () => {
+    setExpanded((v) => !v);
+  };
+  const formatted = React.useMemo(() => {
+    try {
+      console.log({ json });
+      return expanded ? JSON.stringify(JSON.parse(json), null, 2) : json;
+    } catch (err) {
+      console.error(err);
+      return json;
+    }
+  }, [json, expanded]);
+  return (
+    <>
+      <ExpantionButton expanded={expanded} onClick={toggleExpanded} />
+      <pre className="expandable-json mt-2">
+        <code>
+          {formatted}
+        </code>
+      </pre>
+    </>
+  );
+};
+
 const LogBodyHttpStarting: React.VFC<{ request: AppiumLogHttpRequest }> = (
   { request },
 ) => {
+  const body = request.request.body;
   return (
     <>
       <RequestStartingIcon />
       <span className="has-text-weight-bold mr-1">{request.method}</span>
       <ExpandablePath path={request.path} shortPath={request.shortPath} />
+      {body && body !== "{}" && <ExpandableJson json={request.request.body} />}
     </>
   );
 };
@@ -152,7 +180,7 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
     <>
       <LogViewToolbox />
       <section className="section table-container">
-        <table className="table is-fullwidth is-hoverable">
+        <table className="table is-fullwidth">
           <tbody>
             {resolvedEntities.map((entry) => {
               return (
