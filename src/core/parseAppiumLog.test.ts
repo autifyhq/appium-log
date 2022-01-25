@@ -254,6 +254,7 @@ Deno.test("parseAppiumLog()", () => {
         response: { status: 200, millisecond: 2282 },
       }],
     ]),
+    dupGroups: new Map(),
   };
   const logText = `
 2021-12-21 04:30:54:845 [HTTP] --> GET /wd/hub/session/xxx/screenshot

@@ -15,6 +15,7 @@ export type AppiumLogEntry = {
   timestamp: AppiumLogTimestamp;
   category: string;
   body: string;
+  dupGroupId?: string
   http?: {
     requestId: string;
     starting?: true;
@@ -36,10 +37,18 @@ export type AppiumLogHttpRequest = {
   };
 };
 
+export type DupGroup = {
+  id: string
+  count: number
+}
+
 export type AppiumLog = {
   entries: AppiumLogEntry[];
   httpRequests: Map<AppiumLogHttpRequest["id"], AppiumLogHttpRequest>;
+  dupGroups: Map<DupGroup["id"], DupGroup>
 };
+
+const DUP_GROUP_MAX_LINES = 10
 
 // yyyy-MM-dd HH:mm:ss:SSS [Category] log body
 const LOG_LINE_PATTERN = /(\d+-\d+-\d+ \d+:\d+:\d+:\d+) \[(.+?)\] (.+)/;
@@ -111,6 +120,10 @@ const _getShortPath = (path: string): string | undefined => {
   return shortPath;
 };
 
+export const _entryEquals = (entryA: AppiumLogRawEntry, entryB: AppiumLogRawEntry): boolean => {
+  return entryA.category === entryB.category && entryA.body === entryB.body
+}
+
 export const _parseRequestEnd = (entryBody: string) => {
   const match = HTTP_REQUEST_END_PATTERN.exec(entryBody);
   if (!match) {
@@ -126,13 +139,15 @@ export const _parseRequestEnd = (entryBody: string) => {
   };
 };
 
-export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]) => {
+export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]): AppiumLog => {
   const entries: AppiumLogEntry[] = [];
   const httpRequests: AppiumLog["httpRequests"] = new Map();
+  const dupGroups: AppiumLog["dupGroups"] = new Map()
   if (rawEntries.length === 0) {
     return {
       entries,
       httpRequests,
+      dupGroups
     };
   }
 
@@ -217,6 +232,8 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]) => {
       isRequestStarting = false;
       // skip to add to entries
       continue;
+    } else {
+      // check log duplication
     }
 
     entries.push(entry);
@@ -225,6 +242,7 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]) => {
   return {
     entries,
     httpRequests,
+    dupGroups,
   };
 };
 
