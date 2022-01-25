@@ -240,6 +240,7 @@ Deno.test("parseAppiumLog()", () => {
         id: "2021-12-21T04:30:54.845Z GET /wd/hub/session/xxx/screenshot",
         method: "GET",
         path: "/wd/hub/session/xxx/screenshot",
+        shortPath: "/screenshot",
         request: { body: "{}" },
         response: { status: 200, millisecond: 248 },
       }],
@@ -247,6 +248,7 @@ Deno.test("parseAppiumLog()", () => {
         id: "2021-12-21T04:30:55.162Z POST /wd/hub/session/xxx/execute/sync",
         method: "POST",
         path: "/wd/hub/session/xxx/execute/sync",
+        shortPath: "/execute/sync",
         request: {
           body:
             '{"script":"mobile:source","args":[{"format":"xml","excludedAttributes":["visible"]}]}',
