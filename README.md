@@ -14,6 +14,9 @@ requirements
 
 - Deno
 - denon https://deno.land/x/denon
+  - file watcher like nodemon
+- denoliver https://deno.land/x/denoliver
+  - static file server with live reloading
 
 Build a bundle file with watching.
 
@@ -24,5 +27,5 @@ denon watch
 Start a static server.
 
 ```sh
-deno run --allow-net --allow-read https://deno.land/std@0.122.0/http/file_server.ts public/
+denoliver public/
 ```
