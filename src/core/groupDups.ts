@@ -1,4 +1,6 @@
-export type Identify = <T>(item: T) => string;
+import { sequence, withIndex } from "./utils.ts";
+
+export type Identify<T> = (item: T) => string;
 
 export type DupGroup = {
   /** index of the first item of a group */
@@ -23,7 +25,7 @@ export type GroupDupsResult = {
   dupMarkers: DupMarker[];
 };
 
-const equals = <T>(l: T, r: T, identify: Identify): boolean => {
+const equals = <T>(l: T, r: T, identify: Identify<T>): boolean => {
   return identify(l) === identify(r);
 };
 
@@ -31,19 +33,12 @@ const getEndIndex = ({ startIndex, size, count }: DupGroup) => {
   return startIndex + size * count - 1;
 };
 
-const sequence = (size: number) =>
-  Array.from({ length: size })
-    .map((_, i) => i);
-
-const withIndex = <T>(items: T[]) =>
-  items.map((item, i) => [item, i] as [T, number]);
-
 /**
  * group duplicated items
  */
 export const groupDups = <T>(
   items: T[],
-  identify: Identify,
+  identify: Identify<T>,
   maxGroupSize: number,
 ): GroupDupsResult => {
   let groups: DupGroup[] = [];

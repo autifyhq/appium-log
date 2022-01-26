@@ -1,4 +1,6 @@
 import { DateFns } from "../deps.ts";
+import { groupDups } from "./groupDups.ts";
+import { withIndex } from "./utils.ts";
 
 export type AppiumLogRawEntry = {
   date: Date;
@@ -15,7 +17,10 @@ export type AppiumLogEntry = {
   timestamp: AppiumLogTimestamp;
   category: string;
   body: string;
-  dupGroupId?: string;
+
+  duplicateCount?: number;
+  inDupGroup?: true;
+
   http?: {
     requestId: string;
     starting?: true;
@@ -37,15 +42,9 @@ export type AppiumLogHttpRequest = {
   };
 };
 
-export type DupGroup = {
-  id: string;
-  count: number;
-};
-
 export type AppiumLog = {
   entries: AppiumLogEntry[];
   httpRequests: Map<AppiumLogHttpRequest["id"], AppiumLogHttpRequest>;
-  dupGroups: Map<DupGroup["id"], DupGroup>;
 };
 
 const DUP_GROUP_MAX_LINES = 10;
@@ -143,14 +142,12 @@ export const _parseRequestEnd = (entryBody: string) => {
 };
 
 export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]): AppiumLog => {
-  const entries: AppiumLogEntry[] = [];
+  let entries: AppiumLogEntry[] = [];
   const httpRequests: AppiumLog["httpRequests"] = new Map();
-  const dupGroups: AppiumLog["dupGroups"] = new Map();
   if (rawEntries.length === 0) {
     return {
       entries,
       httpRequests,
-      dupGroups,
     };
   }
 
@@ -242,10 +239,26 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]): AppiumLog => {
     entries.push(entry);
   }
 
+  const { groups, dupMarkers } = groupDups(
+    entries,
+    ({ category, body }: AppiumLogEntry) => `${category}/${body}`,
+    DUP_GROUP_MAX_LINES,
+  );
+  for (const [{ isFirst, groupIndex }, index] of withIndex(dupMarkers)) {
+    if (typeof groupIndex === "number") {
+      const group = groups[groupIndex];
+      const entry = entries[index];
+      if (isFirst) {
+        entry.duplicateCount = group.size;
+      }
+      entry.inDupGroup = true;
+    }
+  }
+  entries = entries.filter((_, index) => !dupMarkers[index].duplicated);
+
   return {
     entries,
     httpRequests,
-    dupGroups,
   };
 };
 

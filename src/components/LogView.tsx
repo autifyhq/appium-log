@@ -154,6 +154,17 @@ const RequestBar: React.VFC<{ requestId: string }> = ({ requestId }) => {
   return <div className="request-bar" style={position}></div>;
 };
 
+const DuplicationTag: React.VFC<{ count?: number }> = ({ count }) => {
+  return (
+    <span
+      className="tag is-light is-rounded mr-1"
+      title="duplicated"
+    >
+      {count ?? "*"}
+    </span>
+  );
+};
+
 type Props = {
   appiumLog: AppiumLog;
 };
@@ -196,6 +207,9 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
                   >
                     {entry.http && entry.http.starting && (
                       <RequestBar requestId={entry.http.requestId} />
+                    )}
+                    {entry.inDupGroup && (
+                      <DuplicationTag count={entry.duplicateCount} />
                     )}
                     <LogBody entry={entry} />
                   </td>
