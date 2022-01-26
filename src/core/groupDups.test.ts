@@ -5,6 +5,7 @@ Deno.test("groupDups#1", () => {
   const result = groupDups([], () => "1", 1);
   const expected: GroupDupsResult = {
     groups: [],
+    dupMarkers: [],
   };
   assertEquals(
     result,
@@ -24,6 +25,21 @@ Deno.test("groupDups#2", () => {
       size: 3,
       count: 3,
     }],
+    dupMarkers: [
+      {},
+      { groupIndex: 0, isFirst: true },
+      { groupIndex: 0 },
+      { groupIndex: 0 },
+      { duplicated: true },
+      { duplicated: true },
+      { duplicated: true },
+      { duplicated: true },
+      { duplicated: true },
+      { duplicated: true },
+      {},
+      {},
+      {},
+    ],
   };
   assertEquals(
     result,
@@ -51,6 +67,50 @@ Deno.test("groupDups#3", () => {
       size: 2,
       count: 3,
     }],
+    dupMarkers: [
+      {
+        groupIndex: 0,
+        isFirst: true,
+      },
+      {
+        duplicated: true,
+      },
+      {
+        duplicated: true,
+      },
+      {
+        groupIndex: 1,
+        isFirst: true,
+      },
+      {
+        duplicated: true,
+      },
+      {
+        duplicated: true,
+      },
+      {
+        duplicated: true,
+      },
+      {
+        groupIndex: 2,
+        isFirst: true,
+      },
+      {
+        groupIndex: 2,
+      },
+      {
+        duplicated: true,
+      },
+      {
+        duplicated: true,
+      },
+      {
+        duplicated: true,
+      },
+      {
+        duplicated: true,
+      },
+    ],
   };
   assertEquals(
     result,
