@@ -131,29 +131,6 @@ const LogBody: React.VFC<{ entry: ResolvedAppiumLogEntry }> = ({ entry }) => {
   return <>{entry.body}</>;
 };
 
-const RequestBar: React.VFC<{ requestId: string }> = ({ requestId }) => {
-  const [position, setPosition] = React.useState({ height: 0, top: 0 });
-  React.useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      const [startRect, endRect] = Array.from(
-        document.querySelectorAll(`[data-request-id="${requestId}"]`),
-      )
-        .map((element) => element.getBoundingClientRect());
-      if (!startRect || !endRect) {
-        return;
-      }
-
-      const top = endRect.height / 2 - 4;
-      const height = endRect.y - startRect.y + 8;
-      setPosition({ height, top });
-    }, 100);
-    return () => {
-      window.clearTimeout(timeout);
-    };
-  }, [requestId]);
-  return <div className="request-bar" style={position}></div>;
-};
-
 const DuplicationTag: React.VFC<{ count?: number }> = ({ count }) => {
   return (
     <span
@@ -205,9 +182,6 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
                     className="log-body-cell"
                     data-request-id={entry.http?.requestId}
                   >
-                    {entry.http && entry.http.starting && (
-                      <RequestBar requestId={entry.http.requestId} />
-                    )}
                     {entry.inDupGroup && (
                       <DuplicationTag count={entry.duplicateCount} />
                     )}
