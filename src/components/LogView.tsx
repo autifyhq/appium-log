@@ -1,4 +1,5 @@
-import { clsx, React } from "../deps.ts";
+import { React } from "../deps.ts";
+import { useAllState } from "../core/hooks.ts";
 import {
   AppiumLog,
   AppiumLogEntry,
@@ -147,10 +148,17 @@ type Props = {
 };
 
 export const LogView: React.VFC<Props> = ({ appiumLog }) => {
+  const store = useAllState();
+  const {
+    search: { commitedText: searchText },
+    contextLines: { count: contextLineCount },
+  } = store;
+
   const { entries, httpRequests } = appiumLog;
   const resolvedEntities: ResolvedAppiumLogEntry[] = React.useMemo(
-    () =>
-      entries.map((entry) => {
+    () => {
+      // TODO: searchText, contextLineCount で filter する
+      return entries.map((entry) => {
         return {
           ...entry,
           http: entry.http
@@ -160,12 +168,13 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
             }
             : undefined,
         };
-      }),
-    [entries, httpRequests],
+      });
+    },
+    [entries, httpRequests, searchText, contextLineCount],
   );
   return (
     <>
-      <LogViewToolbox />
+      <LogViewToolbox store={store} />
       <section className="section table-container">
         <table className="table is-fullwidth">
           <tbody>

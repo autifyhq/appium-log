@@ -1,20 +1,20 @@
 import { React } from "../deps.ts";
+import type { Store } from "../core/hooks.ts";
 
-const useSearchText = () => {
-  const [text, setText] = React.useState("");
-  return {
-    text,
-    setText,
-  };
-};
-
-const SearchInput = () => {
+const SearchInput: React.VFC<
+  { value: string; onChange: (value: string) => void }
+> = ({
+  value,
+  onChange,
+}) => {
   return (
     <p className="control has-icons-left">
       <input
         className="input"
         type="text"
         placeholder="Search"
+        value={value}
+        onChange={(ev) => onChange(ev.target.value)}
       />
       <span className="icon is-small is-left">
         <i className="fas fa-search"></i>
@@ -23,10 +23,36 @@ const SearchInput = () => {
   );
 };
 
-export const LogViewToolbox: React.VFC = () => {
+const SearchContextLineInput: React.VFC<
+  { value: number; onChange: (value: number) => void }
+> = ({
+  value,
+  onChange,
+}) => {
+  return (
+    <p className="control">
+      <input
+        className="input"
+        type="number"
+        value={value}
+        onChange={(ev) => onChange(Number(ev.target.value))}
+      />
+    </p>
+  );
+};
+
+export const LogViewToolbox: React.VFC<{ store: Store }> = ({ store }) => {
+  const {
+    search,
+    contextLines,
+  } = store;
   return (
     <section className="section">
-      <SearchInput />
+      <SearchInput value={search.text} onChange={search.setText} />
+      <SearchContextLineInput
+        value={contextLines.count}
+        onChange={contextLines.setCount}
+      />
     </section>
   );
 };
