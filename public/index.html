@@ -6,6 +6,8 @@
     <!-- CSS from https://bulma.io -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
     <link rel ="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- https://markjs.io/ -->
+    <script src="https://cdn.jsdelivr.net/npm/mark.js@8.11.1/dist/mark.es6.min.js" integrity="sha256-51i9DIUkhl5gZzZ5xKiWbJ2qXewVR6W0MUZYPVwmyJ4=" crossorigin="anonymous"></script>
     <script src="bundle.js"></script>
     <title>Appium log viewer</title>
     <style>
@@ -37,6 +39,10 @@
         top: 0;
         background:rgba(255, 255, 255, 0.7);
         z-index: 10;
+      }
+
+      .tag {
+        font-weight: bold;
       }
     </style>
   </head>

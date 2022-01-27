@@ -13,7 +13,7 @@ const Timestamp: React.VFC<{ timestamp: AppiumLogTimestamp }> = (
 ) => <>{timestamp.seconds}</>;
 
 const Category: React.VFC<{ category: string }> = ({ category }) => (
-  <span className="tag is-primary">{category}</span>
+  <span className="tag is-link">{category}</span>
 );
 
 type ResolvedAppiumLogEntry = AppiumLogEntry & {
@@ -153,6 +153,10 @@ type Props = {
   appiumLog: AppiumLog;
 };
 
+// Global class from mark.js
+// @ts-ignore
+const mark = new Mark(".log-body-cell");
+
 export const LogView: React.VFC<Props> = ({ appiumLog }) => {
   const store = useAllState();
   const {
@@ -184,6 +188,15 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
     },
     [entries, httpRequests, searchText, contextLineCount],
   );
+
+  // Mark search keywords every time the keyword changes
+  React.useEffect(() => {
+    mark.mark(searchText);
+    return () => {
+      mark.unmark();
+    };
+  }, [searchText]);
+
   return (
     <>
       <LogViewToolbox store={store} />
