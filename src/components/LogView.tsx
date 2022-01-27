@@ -17,6 +17,7 @@ const Category: React.VFC<{ category: string }> = ({ category }) => (
 );
 
 type ResolvedAppiumLogEntry = AppiumLogEntry & {
+  index: number;
   http?: {
     requestId: string;
     starting?: true;
@@ -113,8 +114,13 @@ const LogBodyHttpFinishing: React.VFC<{ request: AppiumLogHttpRequest }> = (
   return (
     <>
       <RequestFinishingIcon />
-      <span className="has-text-weight-bold mr-1">{request.method}</span>
-      <ExpandablePath path={request.path} shortPath={request.shortPath} />
+      <span className="has-text-weight-bold mr-1">
+        {request.method}
+      </span>
+      <ExpandablePath
+        path={request.path}
+        shortPath={request.shortPath}
+      />
     </>
   );
 };
@@ -157,10 +163,12 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
   const { entries, httpRequests } = appiumLog;
   const resolvedEntities: ResolvedAppiumLogEntry[] = React.useMemo(
     () => {
+      const searchPattern = searchText.toLowerCase();
       // TODO: searchText, contextLineCount で filter する
-      return entries.map((entry) => {
+      return entries.map((entry, index) => {
         return {
           ...entry,
+          index,
           http: entry.http
             ? {
               ...entry.http,
@@ -168,6 +176,10 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
             }
             : undefined,
         };
+      }).filter((entry) => {
+        return searchPattern
+          ? entry.body.toLowerCase().includes(searchPattern)
+          : true;
       });
     },
     [entries, httpRequests, searchText, contextLineCount],
@@ -180,7 +192,7 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
           <tbody>
             {resolvedEntities.map((entry) => {
               return (
-                <tr key={entry.timestamp.seconds}>
+                <tr key={entry.index}>
                   <td className="has-text-grey">
                     <Timestamp timestamp={entry.timestamp} />
                   </td>

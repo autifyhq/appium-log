@@ -47,7 +47,7 @@ export const LogViewToolbox: React.VFC<{ store: Store }> = ({ store }) => {
     contextLines,
   } = store;
   return (
-    <section className="section">
+    <section className="log-view-toolbox px-4 py-2">
       <SearchInput value={search.text} onChange={search.setText} />
       <SearchContextLineInput
         value={contextLines.count}
