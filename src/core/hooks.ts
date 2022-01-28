@@ -1,5 +1,16 @@
 import { React } from "../deps.ts";
 
+const useTitle = () => {
+  const [value, set] = React.useState("appium.log");
+  React.useEffect(() => {
+    document.title = value || "appium.log";
+  }, [value]);
+  return {
+    value,
+    set,
+  };
+};
+
 const useDelayedEffect = (
   callback: () => void,
   delay: number,
@@ -49,11 +60,13 @@ const useTimestampFormat = () => {
 };
 
 export const useAllState = () => {
+  const title = useTitle();
   const search = useSearchText();
   const contextLines = useContextLines();
   const timestampFormat = useTimestampFormat();
 
   return {
+    title,
     search,
     contextLines,
     timestampFormat,

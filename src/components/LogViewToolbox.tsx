@@ -1,6 +1,31 @@
 import { React } from "../deps.ts";
 import type { Store, TimestampFormat } from "../core/hooks.ts";
 
+const TitleInput: React.VFC<
+  { value: string; onChange: (value: string) => void }
+> = ({
+  value,
+  onChange,
+}) => {
+  return (
+    <div className="mr-2">
+      <label className="is-size-7">title</label>
+      <div className="control has-icons-left">
+        <input
+          className="input is-small"
+          type="text"
+          placeholder="Title"
+          value={value}
+          onChange={(ev) => onChange(ev.target.value)}
+        />
+        <span className="icon is-small is-left">
+          <i className="fas fa-globe"></i>
+        </span>
+      </div>
+    </div>
+  );
+};
+
 const SearchInput: React.VFC<
   { value: string; onChange: (value: string) => void }
 > = ({
@@ -14,7 +39,6 @@ const SearchInput: React.VFC<
         <input
           className="input is-small"
           type="text"
-          placeholder="Search"
           value={value}
           onChange={(ev) => onChange(ev.target.value)}
         />
@@ -72,6 +96,7 @@ const TimestampSelect: React.VFC<
 
 export const LogViewToolbox: React.VFC<{ store: Store }> = ({ store }) => {
   const {
+    title,
     search,
     contextLines,
     timestampFormat,
@@ -80,6 +105,9 @@ export const LogViewToolbox: React.VFC<{ store: Store }> = ({ store }) => {
     <section className="log-view-toolbox px-4 py-2">
       <div className="level">
         <div className="level-left">
+          <TitleInput value={title.value} onChange={title.set} />
+        </div>
+        <div className="level-right">
           <SearchInput value={search.text} onChange={search.setText} />
           <SearchContextLineInput
             value={contextLines.count}
