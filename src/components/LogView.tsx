@@ -1,4 +1,4 @@
-import { React } from "../deps.ts";
+import { clsx, React } from "../deps.ts";
 import { useAllState } from "../core/hooks.ts";
 import { filterWithContext } from "../core/filterWithContext.ts";
 import {
@@ -209,17 +209,29 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
       <section className="section table-container">
         <table className="table is-fullwidth">
           <tbody>
-            {resolvedEntities.map((entry) => {
+            {resolvedEntities.map((entry, i, all) => {
+              const bottomBold = i < all.length - 1 &&
+                all[i + 1].index - entry.index > 1;
               return (
                 <tr key={entry.index}>
-                  <td className="has-text-grey">
+                  <td
+                    className={clsx("has-text-grey", {
+                      "border-bottom-bold": bottomBold,
+                    })}
+                  >
                     <Timestamp timestamp={entry.timestamp} />
                   </td>
-                  <td className="has-text-right">
+                  <td
+                    className={clsx("has-text-right", {
+                      "border-bottom-bold": bottomBold,
+                    })}
+                  >
                     <Category category={entry.category} />
                   </td>
                   <td
-                    className="log-body-cell"
+                    className={clsx("log-body-cell", {
+                      "border-bottom-bold": bottomBold,
+                    })}
                     data-request-id={entry.http?.requestId}
                   >
                     {entry.inDupGroup && (
