@@ -36,6 +36,7 @@ const SearchContextLineInput: React.VFC<
         type="number"
         value={value}
         onChange={(ev) => onChange(Number(ev.target.value))}
+        min={0}
       />
     </p>
   );

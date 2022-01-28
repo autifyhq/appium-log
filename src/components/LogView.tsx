@@ -1,5 +1,6 @@
 import { React } from "../deps.ts";
 import { useAllState } from "../core/hooks.ts";
+import { filterWithContext } from "../core/filterWithContext.ts";
 import {
   AppiumLog,
   AppiumLogEntry,
@@ -167,9 +168,7 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
   const { entries, httpRequests } = appiumLog;
   const resolvedEntities: ResolvedAppiumLogEntry[] = React.useMemo(
     () => {
-      const searchPattern = searchText.toLowerCase();
-      // TODO: searchText, contextLineCount で filter する
-      return entries.map((entry, index) => {
+      const resolvedEntities = entries.map((entry, index) => {
         return {
           ...entry,
           index,
@@ -180,11 +179,18 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
             }
             : undefined,
         };
-      }).filter((entry) => {
-        return searchPattern
-          ? entry.body.toLowerCase().includes(searchPattern)
-          : true;
       });
+
+      if (!searchText) {
+        return resolvedEntities;
+      }
+
+      const searchPattern = searchText.toLowerCase();
+      return filterWithContext(
+        resolvedEntities,
+        (entry) => entry.body.toLowerCase().includes(searchPattern),
+        contextLineCount,
+      );
     },
     [entries, httpRequests, searchText, contextLineCount],
   );

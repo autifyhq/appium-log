@@ -33,7 +33,7 @@ const useSearchText = () => {
 };
 
 const useContextLines = () => {
-  const [count, setCount] = React.useState(0);
+  const [count, setCount] = React.useState(5);
   return {
     count,
     setCount,
