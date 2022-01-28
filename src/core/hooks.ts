@@ -40,14 +40,25 @@ const useContextLines = () => {
   };
 };
 
+const useTimestampFormat = () => {
+  const [format, setFormat] = React.useState<TimestampFormat>("relative");
+  return {
+    format,
+    setFormat,
+  };
+};
+
 export const useAllState = () => {
   const search = useSearchText();
   const contextLines = useContextLines();
+  const timestampFormat = useTimestampFormat();
 
   return {
     search,
     contextLines,
+    timestampFormat,
   };
 };
 
+export type TimestampFormat = "relative" | "absolute";
 export type Store = ReturnType<typeof useAllState>;

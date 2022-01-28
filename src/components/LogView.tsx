@@ -1,5 +1,5 @@
 import { clsx, React } from "../deps.ts";
-import { useAllState } from "../core/hooks.ts";
+import { TimestampFormat, useAllState } from "../core/hooks.ts";
 import { filterWithContext } from "../core/filterWithContext.ts";
 import {
   AppiumLog,
@@ -9,9 +9,20 @@ import {
 } from "../core/parseAppiumLog.ts";
 import { LogViewToolbox } from "./LogViewToolbox.tsx";
 
-const Timestamp: React.VFC<{ timestamp: AppiumLogTimestamp }> = (
-  { timestamp },
-) => <>{timestamp.seconds}</>;
+const Timestamp: React.VFC<
+  { timestamp: AppiumLogTimestamp; format: TimestampFormat }
+> = (
+  { timestamp, format },
+) => {
+  switch (format) {
+    case "relative":
+      return <>{timestamp.seconds}</>;
+    case "absolute":
+      return <>{timestamp.date.toISOString()}</>;
+    default:
+      return null;
+  }
+};
 
 const Category: React.VFC<{ category: string }> = ({ category }) => (
   <span className="tag is-link">{category}</span>
@@ -163,6 +174,7 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
   const {
     search: { commitedText: searchText },
     contextLines: { count: contextLineCount },
+    timestampFormat: { format: timestampFormat },
   } = store;
 
   const { entries, httpRequests } = appiumLog;
@@ -215,11 +227,14 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
               return (
                 <tr key={entry.index}>
                   <td
-                    className={clsx("has-text-grey", {
+                    className={clsx("timestamp-cell", "has-text-grey", {
                       "border-bottom-bold": bottomBold,
                     })}
                   >
-                    <Timestamp timestamp={entry.timestamp} />
+                    <Timestamp
+                      timestamp={entry.timestamp}
+                      format={timestampFormat}
+                    />
                   </td>
                   <td
                     className={clsx("has-text-right", {

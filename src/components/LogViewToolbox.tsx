@@ -1,5 +1,5 @@
 import { React } from "../deps.ts";
-import type { Store } from "../core/hooks.ts";
+import type { Store, TimestampFormat } from "../core/hooks.ts";
 
 const SearchInput: React.VFC<
   { value: string; onChange: (value: string) => void }
@@ -48,10 +48,33 @@ const SearchContextLineInput: React.VFC<
   );
 };
 
+const TimestampSelect: React.VFC<
+  { value: string; onChange: (value: TimestampFormat) => void }
+> = ({
+  value,
+  onChange,
+}) => {
+  return (
+    <div className="mr-2">
+      <label className="is-size-7">timestamp</label>
+      <div className="control select is-small is-block">
+        <select
+          value={value}
+          onChange={(ev) => onChange(ev.target.value as TimestampFormat)}
+        >
+          <option value="relative">relative</option>
+          <option value="absolute">absolute</option>
+        </select>
+      </div>
+    </div>
+  );
+};
+
 export const LogViewToolbox: React.VFC<{ store: Store }> = ({ store }) => {
   const {
     search,
     contextLines,
+    timestampFormat,
   } = store;
   return (
     <section className="log-view-toolbox px-4 py-2">
@@ -61,6 +84,10 @@ export const LogViewToolbox: React.VFC<{ store: Store }> = ({ store }) => {
           <SearchContextLineInput
             value={contextLines.count}
             onChange={contextLines.setCount}
+          />
+          <TimestampSelect
+            value={timestampFormat.format}
+            onChange={timestampFormat.setFormat}
           />
         </div>
       </div>
