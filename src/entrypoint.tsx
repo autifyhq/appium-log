@@ -20,6 +20,14 @@ function main() {
   root.id = "root";
   document.body.appendChild(root);
 
+  // attach meta elements
+  // font awesome
+  const link = document.createElement("link") as any;
+  link.rel = "stylesheet";
+  link.href =
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css";
+  document.head.appendChild(link);
+
   ReactDOM.render(
     <App logText={logText} />,
     document.getElementById("root"),

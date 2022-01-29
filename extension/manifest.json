@@ -6,7 +6,7 @@
   "author": "Fuji Haruka",
   "content_scripts": [
     {
-      "matches": ["*://*/appium*.log", "file:///*/appium.log"],
+      "matches": ["*://*/appium*.log", "file:///*/appium*.log"],
       "js": ["content_script.js"],
       "css": ["css/bulma.min.css", "css/app.css"],
       "run_at": "document_end"

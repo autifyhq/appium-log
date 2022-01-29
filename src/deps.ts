@@ -1,6 +1,5 @@
 import React from "https://esm.sh/react@17.0.2";
 import ReactDOM from "https://esm.sh/react-dom@17.0.2";
-import { Helmet } from "https://esm.sh/react-helmet@6.1.0";
 import clsx from "https://esm.sh/clsx@1.1.1";
 
 // "Mark" is Globally imported
@@ -12,4 +11,4 @@ const DateFns = {
   parse,
 };
 
-export { clsx, DateFns, Helmet, React, ReactDOM };
+export { clsx, DateFns, React, ReactDOM };
