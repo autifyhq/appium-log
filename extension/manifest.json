@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Appium Log Viewer",
+  "version": "0.1.0",
+  "description": "Make appium logs easy to read",
+  "author": "Fuji Haruka",
+  "content_scripts": [
+    {
+      "matches": ["*://*/appium*.log", "file:///*/appium.log"],
+      "js": ["content_script.js"],
+      "css": ["css/bulma.min.css", "css/app.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "permissions": []
+}
