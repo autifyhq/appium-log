@@ -24,8 +24,24 @@ td.border-bottom-bold {
   left: 0;
 }
 
+.expandable-json-outer {
+  position: relative;
+}
+
 pre.expandable-json {
   font-size: 1em;
+}
+
+.expandable-json-expansion-button {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+}
+
+.expandable-json-copy-button {
+  position: absolute;
+  top: 4px;
+  left: calc(8px + 1.5em);
 }
 
 .log-view-toolbox {

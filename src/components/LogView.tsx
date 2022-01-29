@@ -1,4 +1,4 @@
-import { clsx, React } from "../deps.ts";
+import { clsx, copy, React } from "../deps.ts";
 import { TimestampFormat, useAllState } from "../core/hooks.ts";
 import { filterWithContext } from "../core/filterWithContext.ts";
 import {
@@ -48,7 +48,7 @@ const RequestFinishingIcon = () => (
     <i className="fas fa-arrow-left"></i>
   </span>
 );
-const ExpantionButton: React.VFC<
+const ExpansionButton: React.VFC<
   { expanded: boolean; onClick: () => void }
 > = ({ expanded, onClick }) => {
   return (
@@ -72,13 +72,27 @@ const ExpandablePath: React.VFC<{ path: string; shortPath?: string }> = (
   return shortPath
     ? (
       <>
-        <ExpantionButton expanded={expanded} onClick={toggleExpanded} />
+        <ExpansionButton expanded={expanded} onClick={toggleExpanded} />
         {expanded
           ? <code className="is-size-6">{path}</code>
           : <code className="is-size-6">{shortPath}</code>}
       </>
     )
     : <code className="is-size-6">{path}</code>;
+};
+
+const CopyButton: React.VFC<{ text: string }> = ({ text }) => {
+  return (
+    <span
+      className="icon is-small has-text-grey-light is-clickable"
+      title="Copy"
+      onClick={() => {
+        copy(text);
+      }}
+    >
+      <i className="fas fa-copy"></i>
+    </span>
+  );
 };
 
 const ExpandableJson: React.VFC<{ json: string }> = ({ json }) => {
@@ -95,14 +109,19 @@ const ExpandableJson: React.VFC<{ json: string }> = ({ json }) => {
     }
   }, [json, expanded]);
   return (
-    <>
-      <ExpantionButton expanded={expanded} onClick={toggleExpanded} />
-      <pre className="expandable-json mt-2">
+    <div className="expandable-json-outer">
+      <span className="expandable-json-expansion-button">
+        <ExpansionButton expanded={expanded} onClick={toggleExpanded} />
+      </span>
+      <span className="expandable-json-copy-button">
+        <CopyButton text={formatted} />
+      </span>
+      <pre className="expandable-json mt-2 pt-5">
         <code>
           {formatted}
         </code>
       </pre>
-    </>
+    </div>
   );
 };
 
