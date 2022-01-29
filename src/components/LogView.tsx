@@ -180,6 +180,31 @@ const DuplicationTag: React.VFC<{ count?: number }> = ({ count }) => {
   );
 };
 
+const MarkerCell: React.VFC<
+  { marked: boolean; onToggle: () => void; bottomBold: boolean }
+> = ({ marked, onToggle, bottomBold }) => {
+  const [entering, setEntering] = React.useState(false);
+  return (
+    <td
+      className={clsx("marker-cell", {
+        "border-bottom-bold": bottomBold,
+      })}
+      onMouseEnter={() => setEntering(true)}
+      onMouseLeave={() => setEntering(false)}
+    >
+      <span
+        className={clsx("icon is-small has-text-danger is-clickable", {
+          "opacity-0": !marked && !entering,
+          "opacity-half": !marked && entering,
+        })}
+        onClick={onToggle}
+      >
+        <i className="fas fa-circle"></i>
+      </span>
+    </td>
+  );
+};
+
 type Props = {
   appiumLog: AppiumLog;
 };
@@ -226,6 +251,8 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
     [entries, httpRequests, searchText, contextLineCount],
   );
 
+  const [markers, setMarkers] = React.useState<Record<number, boolean>>({});
+
   // Mark search keywords every time the keyword changes
   React.useEffect(() => {
     mark.mark(searchText);
@@ -237,7 +264,7 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
   return (
     <>
       <LogViewToolbox store={store} />
-      <section className="section table-container">
+      <section className="table-container">
         <table className="table is-fullwidth">
           <tbody>
             {resolvedEntities.map((entry, i, all) => {
@@ -245,6 +272,16 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
                 all[i + 1].index - entry.index > 1;
               return (
                 <tr key={entry.index}>
+                  <MarkerCell
+                    marked={markers[entry.index]}
+                    onToggle={() => {
+                      setMarkers((markers) => ({
+                        ...markers,
+                        [entry.index]: !markers[entry.index],
+                      }));
+                    }}
+                    bottomBold={bottomBold}
+                  />
                   <td
                     className={clsx("timestamp-cell", "has-text-grey", {
                       "border-bottom-bold": bottomBold,

@@ -58,3 +58,11 @@ pre.expandable-json {
 .max-width-3em {
   max-width: 3em;
 }
+
+.opacity-0 {
+  opacity: 0;
+}
+
+.opacity-half {
+  opacity: 0.6;
+}
