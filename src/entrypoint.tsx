@@ -1,13 +1,28 @@
 import { React, ReactDOM } from "./deps.ts";
 import { App } from "./App.tsx";
 
-function main() {
-  const pre = document.body.firstElementChild!;
-  if (
-    !pre || pre.tagName !== "PRE" ||
-    pre !== document.body.lastElementChild
-  ) {
-    // not appium.log text file
+async function wait(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitUntilPreElement(): Promise<Element | null> {
+  // wait 2 sec
+  for (let i = 0; i < 200; i++) {
+    const pre = document.body.firstElementChild;
+    const ok = pre && pre.tagName === "PRE" &&
+      pre === document.body.lastElementChild;
+    if (ok) {
+      return pre;
+    }
+    await wait(10);
+  }
+  return null;
+}
+
+async function main() {
+  const pre = await waitUntilPreElement();
+  if (!pre) {
+    console.debug("This page seems not to be appium log. Rendering skipped.");
     return;
   }
 
@@ -34,4 +49,4 @@ function main() {
   );
 }
 
-main();
+main().catch((e) => console.error(e));
