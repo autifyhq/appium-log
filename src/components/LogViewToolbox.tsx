@@ -26,6 +26,18 @@ const TitleInput: React.VFC<
   );
 };
 
+const TotalLines: React.VFC<{ lines: number }> = ({ lines }) => {
+  return (
+    <div className="mr-2">
+      <label className="is-size-7">lines</label>
+      <div className="control">
+        {/* @ts-ignore */}
+        <span className="input is-small border-none" readOnly>{lines}</span>
+      </div>
+    </div>
+  );
+};
+
 const SearchInput: React.VFC<
   { value: string; onChange: (value: string) => void }
 > = ({
@@ -58,7 +70,7 @@ const SearchContextLineInput: React.VFC<
 }) => {
   return (
     <div className="mr-2 max-width-3em">
-      <label className="is-size-7">lines</label>
+      <label className="is-size-7">+</label>
       <div className="control">
         <input
           className="input is-small"
@@ -94,7 +106,9 @@ const TimestampSelect: React.VFC<
   );
 };
 
-export const LogViewToolbox: React.VFC<{ store: Store }> = ({ store }) => {
+export const LogViewToolbox: React.VFC<{ store: Store; lines: number }> = (
+  { store, lines },
+) => {
   const {
     title,
     search,
@@ -108,6 +122,7 @@ export const LogViewToolbox: React.VFC<{ store: Store }> = ({ store }) => {
           <TitleInput value={title.value} onChange={title.set} />
         </div>
         <div className="level-right">
+          <TotalLines lines={lines} />
           <SearchInput value={search.text} onChange={search.setText} />
           <SearchContextLineInput
             value={contextLines.count}

@@ -70,3 +70,7 @@ pre.expandable-json {
 .inline-block {
   display: inline-block;
 }
+
+.border-none {
+  border: none;
+}

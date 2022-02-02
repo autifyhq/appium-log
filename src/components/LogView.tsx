@@ -281,7 +281,11 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
 
   // Mark search keywords every time the keyword changes
   React.useEffect(() => {
-    mark.mark(searchText);
+    if (searchText.length > 1) {
+      mark.mark(searchText, {
+        separateWordSearch: false,
+      });
+    }
     return () => {
       mark.unmark();
     };
@@ -289,7 +293,7 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
 
   return (
     <>
-      <LogViewToolbox store={store} />
+      <LogViewToolbox store={store} lines={resolvedEntities.length} />
       <section className="table-container">
         <table className="table is-fullwidth">
           <tbody>
