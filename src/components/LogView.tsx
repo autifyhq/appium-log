@@ -125,10 +125,34 @@ const ExpandableJson: React.VFC<{ json: string }> = ({ json }) => {
   );
 };
 
+const HttpResponseSummary: React.VFC<{ status: number; millisecond: number }> =
+  ({ status, millisecond }) => {
+    return (
+      <div className="inline-block ml-4">
+        <div className="field is-grouped is-grouped-multiline">
+          <div className="control">
+            <div className="tags has-addons">
+              <span className="tag is-info is-light">status</span>
+              <span className="tag">{status}</span>
+            </div>
+          </div>
+
+          <div className="control">
+            <div className="tags has-addons">
+              <span className="tag is-info is-light">time</span>
+              <span className="tag">{millisecond} ms</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
 const LogBodyHttpStarting: React.VFC<{ request: AppiumLogHttpRequest }> = (
   { request },
 ) => {
-  const body = request.request.body;
+  const { body } = request.request;
+  const { response } = request;
   return (
     <>
       <RequestStartingIcon />
@@ -142,6 +166,7 @@ const LogBodyHttpStarting: React.VFC<{ request: AppiumLogHttpRequest }> = (
 const LogBodyHttpFinishing: React.VFC<{ request: AppiumLogHttpRequest }> = (
   { request },
 ) => {
+  const { response } = request;
   return (
     <>
       <RequestFinishingIcon />
@@ -152,6 +177,7 @@ const LogBodyHttpFinishing: React.VFC<{ request: AppiumLogHttpRequest }> = (
         path={request.path}
         shortPath={request.shortPath}
       />
+      {response && <HttpResponseSummary {...response} />}
     </>
   );
 };

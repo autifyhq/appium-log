@@ -66,3 +66,7 @@ pre.expandable-json {
 .opacity-half {
   opacity: 0.6;
 }
+
+.inline-block {
+  display: inline-block;
+}
