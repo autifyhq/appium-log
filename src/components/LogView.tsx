@@ -1,5 +1,9 @@
 import { clsx, copy, React } from "../deps.ts";
-import { TimestampFormat, useAllState } from "../core/hooks.ts";
+import {
+  DEFAULT_CATEGORY_FILTER,
+  TimestampFormat,
+  useAllState,
+} from "../core/hooks.ts";
 import { filterWithContext } from "../core/filterWithContext.ts";
 import {
   AppiumLog,
@@ -245,36 +249,45 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
     search: { commitedText: searchText },
     contextLines: { count: contextLineCount },
     timestampFormat: { format: timestampFormat },
+    categoryFilter: { value: categoryFilterValue },
   } = store;
 
   const { entries, httpRequests } = appiumLog;
-  const resolvedEntities: ResolvedAppiumLogEntry[] = React.useMemo(
+  const resolvedEntries: ResolvedAppiumLogEntry[] = React.useMemo(
     () => {
-      const resolvedEntities = entries.map((entry, index) => {
-        return {
-          ...entry,
-          index,
-          http: entry.http
-            ? {
-              ...entry.http,
-              request: httpRequests.get(entry.http.requestId)!,
-            }
-            : undefined,
-        };
-      });
+      let resolvedEntries = entries
+        .filter((entry) => {
+          if (categoryFilterValue === DEFAULT_CATEGORY_FILTER) {
+            return true;
+          } else {
+            return entry.category === categoryFilterValue;
+          }
+        })
+        .map((entry, index) => {
+          return {
+            ...entry,
+            index,
+            http: entry.http
+              ? {
+                ...entry.http,
+                request: httpRequests.get(entry.http.requestId)!,
+              }
+              : undefined,
+          };
+        });
 
       if (!searchText) {
-        return resolvedEntities;
+        return resolvedEntries;
       }
 
       const searchPattern = searchText.toLowerCase();
       return filterWithContext(
-        resolvedEntities,
+        resolvedEntries,
         (entry) => entry.body.toLowerCase().includes(searchPattern),
         contextLineCount,
       );
     },
-    [entries, httpRequests, searchText, contextLineCount],
+    [entries, httpRequests, searchText, contextLineCount, categoryFilterValue],
   );
 
   const [markers, setMarkers] = React.useState<Record<number, boolean>>({});
@@ -293,11 +306,11 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
 
   return (
     <>
-      <LogViewToolbox store={store} lines={resolvedEntities.length} />
+      <LogViewToolbox store={store} lines={resolvedEntries.length} />
       <section className="table-container">
         <table className="table is-fullwidth">
           <tbody>
-            {resolvedEntities.map((entry, i, all) => {
+            {resolvedEntries.map((entry, i, all) => {
               const bottomBold = i < all.length - 1 &&
                 all[i + 1].index - entry.index > 1;
               return (

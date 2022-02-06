@@ -59,17 +59,29 @@ const useTimestampFormat = () => {
   };
 };
 
+export const DEFAULT_CATEGORY_FILTER = "all";
+
+const useCategoryFilter = () => {
+  const [value, set] = React.useState(DEFAULT_CATEGORY_FILTER);
+  return {
+    value,
+    set,
+  };
+};
+
 export const useAllState = () => {
   const title = useTitle();
   const search = useSearchText();
   const contextLines = useContextLines();
   const timestampFormat = useTimestampFormat();
+  const categoryFilter = useCategoryFilter();
 
   return {
     title,
     search,
     contextLines,
     timestampFormat,
+    categoryFilter,
   };
 };
 

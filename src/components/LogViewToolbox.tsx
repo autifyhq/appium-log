@@ -106,6 +106,25 @@ const TimestampSelect: React.VFC<
   );
 };
 
+const CategoryFilterSelect: React.VFC<
+  { value: string; onChange: (value: string) => void }
+> = ({ value, onChange }) => {
+  return (
+    <div className="mr-2">
+      <label className="is-size-7">category</label>
+      <div className="control select is-small is-block">
+        <select
+          value={value}
+          onChange={(ev) => onChange(ev.target.value as TimestampFormat)}
+        >
+          <option value="all">all</option>
+          <option value="HTTP">HTTP</option>
+        </select>
+      </div>
+    </div>
+  );
+};
+
 export const LogViewToolbox: React.VFC<{ store: Store; lines: number }> = (
   { store, lines },
 ) => {
@@ -114,6 +133,7 @@ export const LogViewToolbox: React.VFC<{ store: Store; lines: number }> = (
     search,
     contextLines,
     timestampFormat,
+    categoryFilter,
   } = store;
   return (
     <section className="log-view-toolbox px-4 py-2">
@@ -131,6 +151,10 @@ export const LogViewToolbox: React.VFC<{ store: Store; lines: number }> = (
           <TimestampSelect
             value={timestampFormat.format}
             onChange={timestampFormat.setFormat}
+          />
+          <CategoryFilterSelect
+            value={categoryFilter.value}
+            onChange={categoryFilter.set}
           />
         </div>
       </div>
