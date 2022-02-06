@@ -14,9 +14,10 @@ Clone this repository and
 
 requirements
 
-- Deno
-- denon https://deno.land/x/denon
+- Deno >= 1.18
+- [denon](https://deno.land/x/denon)
   - file watcher like nodemon
+- (recommended) [Deno for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno)
 
 Build a bundle file with watcher.
 
@@ -24,4 +25,4 @@ Build a bundle file with watcher.
 denon dev
 ```
 
-Make sure you update extension/content_script.js when you update & commit src/ because it's under git management.
+Make sure to update extension/content_script.js when you update & commit src/ because it's under git management.
