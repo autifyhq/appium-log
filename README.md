@@ -2,6 +2,9 @@
 
 Chrome extension for Appium log viewer.
 
+<img width="1279" alt="screenshot" src="https://user-images.githubusercontent.com/16313897/152668647-f7adcea6-7363-4a4e-98cf-1b19ca8ccb53.png">
+
+
 ## Install the chrome extension
 
 Clone this repository and
