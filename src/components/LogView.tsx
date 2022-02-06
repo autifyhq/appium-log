@@ -239,10 +239,6 @@ type Props = {
   appiumLog: AppiumLog;
 };
 
-// Global class from mark.js
-// @ts-ignore
-const mark = new Mark(".log-body-cell");
-
 export const LogView: React.VFC<Props> = ({ appiumLog }) => {
   const store = useAllState();
   const {
@@ -291,18 +287,6 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
   );
 
   const [markers, setMarkers] = React.useState<Record<number, boolean>>({});
-
-  // Mark search keywords every time the keyword changes
-  React.useEffect(() => {
-    if (searchText.length > 1) {
-      mark.mark(searchText, {
-        separateWordSearch: false,
-      });
-    }
-    return () => {
-      mark.unmark();
-    };
-  }, [searchText]);
 
   return (
     <>
