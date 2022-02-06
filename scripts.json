@@ -1,7 +1,16 @@
 {
   "$schema": "https://deno.land/x/denon/schema.json",
   "scripts": {
-    "watch": "deno bundle --no-check -c deno_build.jsonc src/entrypoint.tsx extension/content_script.js"
+    "dev": {
+      "cmd": "deno bundle --no-check -c deno_build.jsonc src/entrypoint.tsx extension/content_script.js",
+      "desc": "build content script with watcher",
+      "watch": true
+    },
+    "build": {
+      "cmd": "deno bundle --no-check -c deno_build.jsonc src/entrypoint.tsx extension/content_script.js",
+      "desc": "build content script",
+      "watch": false
+    }
   },
   "watcher": {
     "interval": 100,
