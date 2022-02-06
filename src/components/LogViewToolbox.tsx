@@ -107,7 +107,7 @@ const TimestampSelect: React.VFC<
 };
 
 const CategoryFilterSelect: React.VFC<
-  { value: string; onChange: (value: string) => void }
+  { value: string; onChange: (value: "all" | "HTTP") => void }
 > = ({ value, onChange }) => {
   return (
     <div className="mr-2">
@@ -115,11 +115,30 @@ const CategoryFilterSelect: React.VFC<
       <div className="control select is-small is-block">
         <select
           value={value}
-          onChange={(ev) => onChange(ev.target.value as TimestampFormat)}
+          onChange={(ev) => onChange(ev.target.value as "all" | "HTTP")}
         >
           <option value="all">all</option>
           <option value="HTTP">HTTP</option>
         </select>
+      </div>
+    </div>
+  );
+};
+
+const RequestDurationFilter: React.VFC<
+  { value: number; onChange: (value: number) => void }
+> = ({ value, onChange }) => {
+  return (
+    <div className="mr-2">
+      <label className="is-size-7">took more than</label>
+      <div className="control">
+        <input
+          className="input is-small"
+          type="number"
+          value={value}
+          onChange={(ev) => onChange(Number(ev.target.value))}
+          min={0}
+        />
       </div>
     </div>
   );
@@ -134,6 +153,7 @@ export const LogViewToolbox: React.VFC<{ store: Store; lines: number }> = (
     contextLines,
     timestampFormat,
     categoryFilter,
+    requestDurationFilter,
   } = store;
   return (
     <section className="log-view-toolbox px-4 py-2">
@@ -156,6 +176,13 @@ export const LogViewToolbox: React.VFC<{ store: Store; lines: number }> = (
             value={categoryFilter.value}
             onChange={categoryFilter.set}
           />
+          {categoryFilter.value === "HTTP" &&
+            (
+              <RequestDurationFilter
+                value={requestDurationFilter.value}
+                onChange={requestDurationFilter.set}
+              />
+            )}
         </div>
       </div>
     </section>

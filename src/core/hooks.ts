@@ -62,7 +62,15 @@ const useTimestampFormat = () => {
 export const DEFAULT_CATEGORY_FILTER = "all";
 
 const useCategoryFilter = () => {
-  const [value, set] = React.useState(DEFAULT_CATEGORY_FILTER);
+  const [value, set] = React.useState<"all" | "HTTP">(DEFAULT_CATEGORY_FILTER);
+  return {
+    value,
+    set,
+  };
+};
+
+const useRequestDurationFilter = () => {
+  const [value, set] = React.useState(0);
   return {
     value,
     set,
@@ -75,6 +83,7 @@ export const useAllState = () => {
   const contextLines = useContextLines();
   const timestampFormat = useTimestampFormat();
   const categoryFilter = useCategoryFilter();
+  const requestDurationFilter = useRequestDurationFilter();
 
   return {
     title,
@@ -82,6 +91,7 @@ export const useAllState = () => {
     contextLines,
     timestampFormat,
     categoryFilter,
+    requestDurationFilter,
   };
 };
 

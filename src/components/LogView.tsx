@@ -246,19 +246,13 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
     contextLines: { count: contextLineCount },
     timestampFormat: { format: timestampFormat },
     categoryFilter: { value: categoryFilterValue },
+    requestDurationFilter: { value: requestTookMoreThan },
   } = store;
 
   const { entries, httpRequests } = appiumLog;
   const resolvedEntries: ResolvedAppiumLogEntry[] = React.useMemo(
     () => {
       let resolvedEntries = entries
-        .filter((entry) => {
-          if (categoryFilterValue === DEFAULT_CATEGORY_FILTER) {
-            return true;
-          } else {
-            return entry.category === categoryFilterValue;
-          }
-        })
         .map((entry, index) => {
           return {
             ...entry,
@@ -270,6 +264,19 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
               }
               : undefined,
           };
+        })
+        .filter((entry) => {
+          if (categoryFilterValue === DEFAULT_CATEGORY_FILTER) {
+            return true;
+          } else {
+            if (categoryFilterValue === "HTTP") {
+              return entry.category === categoryFilterValue &&
+                (entry.http?.request?.response?.millisecond ?? 1) >
+                  requestTookMoreThan;
+            } else {
+              return entry.category === categoryFilterValue;
+            }
+          }
         });
 
       if (!searchText) {
@@ -283,7 +290,14 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
         contextLineCount,
       );
     },
-    [entries, httpRequests, searchText, contextLineCount, categoryFilterValue],
+    [
+      entries,
+      httpRequests,
+      searchText,
+      contextLineCount,
+      categoryFilterValue,
+      requestTookMoreThan,
+    ],
   );
 
   const [markers, setMarkers] = React.useState<Record<number, boolean>>({});
@@ -295,7 +309,8 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
         <table className="table is-fullwidth">
           <tbody>
             {resolvedEntries.map((entry, i, all) => {
-              const bottomBold = i < all.length - 1 &&
+              const bottomBold = categoryFilterValue === "all" &&
+                i < all.length - 1 &&
                 all[i + 1].index - entry.index > 1;
               return (
                 <tr key={entry.index}>
