@@ -1,6 +1,7 @@
 import { DateFns } from "../deps.ts";
 import { groupDups } from "./groupDups.ts";
 import { withIndex } from "./utils.ts";
+import { findClosestRequest } from "./findClosestRequest.ts";
 
 export type AppiumLogRawEntry = {
   date: Date;
@@ -33,6 +34,7 @@ export type AppiumLogHttpRequest = {
   method: string;
   path: string;
   shortPath?: string;
+  requestAt: number;
   request: {
     body: string;
   };
@@ -153,7 +155,7 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]): AppiumLog => {
 
   const startDate = rawEntries[0].date.getTime();
   // provide context for current http request
-  let httpRequestIdStack: string[] = [];
+  let requestStack: AppiumLogHttpRequest[] = [];
   // to tell the previous entry is http request starting
   let isRequestStarting = false;
 
@@ -178,9 +180,10 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]): AppiumLog => {
         request: {
           body: "", // will be set at the next entry
         },
+        requestAt: timestamp.date.getTime(),
       };
 
-      httpRequestIdStack.push(request.id);
+      requestStack.push(request);
       httpRequests.set(request.id, request);
       entry.http = {
         requestId: request.id,
@@ -188,7 +191,7 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]): AppiumLog => {
       };
       isRequestStarting = true;
     } else if (_isHttpRequestEnding(rawEntry)) {
-      if (httpRequestIdStack.length === 0) {
+      if (requestStack.length === 0) {
         throw new Error("http request is finished before starting");
       }
 
@@ -197,24 +200,22 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]): AppiumLog => {
       );
 
       // find the corresponding http request
-      let request: AppiumLogHttpRequest | null = null;
-      // NOTE: if requests with the same method and path started concurrently,
-      // it might fail to find the correct corresponding request
-      for (const id of [...httpRequestIdStack].reverse()) {
-        const candidate = httpRequests.get(id)!;
-        if (candidate.method === method && candidate.path === path) {
-          request = candidate;
-        }
-      }
+      const requestAt = timestamp.date.getTime() - millisecond;
+      const request = findClosestRequest(requestStack, {
+        method,
+        path,
+        requestAt,
+      });
       if (!request) {
-        throw new Error(
-          `Could not found the starting http request log for ${method} ${path}`,
-        );
+        console.error("Could not found the starting http request log for", {
+          method,
+          path,
+          requestAt,
+        });
+        continue;
       }
 
-      httpRequestIdStack = httpRequestIdStack.filter((id) =>
-        id !== request!.id
-      );
+      requestStack = requestStack.filter(({ id }) => id !== request.id);
 
       request.response = {
         status,
@@ -226,7 +227,7 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]): AppiumLog => {
       };
     } else if (isRequestStarting) {
       // this entry must describe the request body
-      const requestId = httpRequestIdStack[httpRequestIdStack.length - 1];
+      const requestId = requestStack[requestStack.length - 1].id;
       const request = httpRequests.get(requestId)!;
       request.request.body = body;
       isRequestStarting = false;
