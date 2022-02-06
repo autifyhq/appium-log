@@ -130,7 +130,7 @@ const RequestDurationFilter: React.VFC<
 > = ({ value, onChange }) => {
   return (
     <div className="mr-2">
-      <label className="is-size-7">took more than</label>
+      <label className="is-size-7">took more than (ms)</label>
       <div className="control">
         <input
           className="input is-small"
