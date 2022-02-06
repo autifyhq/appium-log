@@ -99,6 +99,19 @@ const CopyButton: React.VFC<{ text: string }> = ({ text }) => {
   );
 };
 
+const ResetCategoryFilterButton: React.VFC<
+  { onClick: () => void }
+> = ({ onClick }) => {
+  return (
+    <span
+      className="icon is-small has-text-grey-light is-clickable"
+      onClick={onClick}
+    >
+      <i className="fas fa-expand-alt"></i>
+    </span>
+  );
+};
+
 const ExpandableJson: React.VFC<{ json: string }> = ({ json }) => {
   const [expanded, setExpanded] = React.useState(false);
   const toggleExpanded = () => {
@@ -152,23 +165,29 @@ const HttpResponseSummary: React.VFC<{ status: number; millisecond: number }> =
     );
   };
 
-const LogBodyHttpStarting: React.VFC<{ request: AppiumLogHttpRequest }> = (
-  { request },
+const LogBodyHttpStarting: React.VFC<
+  { request: AppiumLogHttpRequest; onResetCategoryFilter?: () => void }
+> = (
+  { request, onResetCategoryFilter },
 ) => {
   const { body } = request.request;
-  const { response } = request;
   return (
     <>
       <RequestStartingIcon />
       <span className="has-text-weight-bold mr-1">{request.method}</span>
       <ExpandablePath path={request.path} shortPath={request.shortPath} />
+      {onResetCategoryFilter && (
+        <ResetCategoryFilterButton onClick={onResetCategoryFilter} />
+      )}
       {body && body !== "{}" && <ExpandableJson json={request.request.body} />}
     </>
   );
 };
 
-const LogBodyHttpFinishing: React.VFC<{ request: AppiumLogHttpRequest }> = (
-  { request },
+const LogBodyHttpFinishing: React.VFC<
+  { request: AppiumLogHttpRequest; onResetCategoryFilter?: () => void }
+> = (
+  { request, onResetCategoryFilter },
 ) => {
   const { response } = request;
   return (
@@ -182,18 +201,33 @@ const LogBodyHttpFinishing: React.VFC<{ request: AppiumLogHttpRequest }> = (
         shortPath={request.shortPath}
       />
       {response && <HttpResponseSummary {...response} />}
+      {onResetCategoryFilter && (
+        <ResetCategoryFilterButton onClick={onResetCategoryFilter} />
+      )}
     </>
   );
 };
 
-const LogBody: React.VFC<{ entry: ResolvedAppiumLogEntry }> = ({ entry }) => {
+const LogBody: React.VFC<
+  { entry: ResolvedAppiumLogEntry; onResetCategoryFilter?: () => void }
+> = ({ entry, onResetCategoryFilter }) => {
   if (entry.http) {
     const { request } = entry.http;
     if (entry.http.starting) {
-      return <LogBodyHttpStarting request={request} />;
+      return (
+        <LogBodyHttpStarting
+          request={request}
+          onResetCategoryFilter={onResetCategoryFilter}
+        />
+      );
     }
     if (entry.http.finishing) {
-      return <LogBodyHttpFinishing request={request} />;
+      return (
+        <LogBodyHttpFinishing
+          request={request}
+          onResetCategoryFilter={onResetCategoryFilter}
+        />
+      );
     }
   }
   return <>{entry.body}</>;
@@ -235,6 +269,14 @@ const MarkerCell: React.VFC<
   );
 };
 
+const scrollToEntry = (entry: ResolvedAppiumLogEntry) => {
+  const entryElement = document.getElementById(`entry-${entry.index}`);
+  if (!entryElement) {
+    return;
+  }
+  entryElement.scrollIntoView({ block: "center" });
+};
+
 type Props = {
   appiumLog: AppiumLog;
 };
@@ -245,8 +287,8 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
     search: { commitedText: searchText },
     contextLines: { count: contextLineCount },
     timestampFormat: { format: timestampFormat },
-    categoryFilter: { value: categoryFilterValue },
-    requestDurationFilter: { value: requestTookMoreThan },
+    categoryFilter,
+    requestDurationFilter,
   } = store;
 
   const { entries, httpRequests } = appiumLog;
@@ -266,15 +308,15 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
           };
         })
         .filter((entry) => {
-          if (categoryFilterValue === DEFAULT_CATEGORY_FILTER) {
+          if (categoryFilter.value === DEFAULT_CATEGORY_FILTER) {
             return true;
           } else {
-            if (categoryFilterValue === "HTTP") {
-              return entry.category === categoryFilterValue &&
+            if (categoryFilter.value === "HTTP") {
+              return entry.category === categoryFilter.value &&
                 (entry.http?.request?.response?.millisecond ?? 1) >
-                  requestTookMoreThan;
+                  requestDurationFilter.value;
             } else {
-              return entry.category === categoryFilterValue;
+              return entry.category === categoryFilter.value;
             }
           }
         });
@@ -295,25 +337,31 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
       httpRequests,
       searchText,
       contextLineCount,
-      categoryFilterValue,
-      requestTookMoreThan,
+      categoryFilter.value,
+      requestDurationFilter.value,
     ],
   );
 
   const [markers, setMarkers] = React.useState<Record<number, boolean>>({});
 
+  const filteredByCategory = categoryFilter.value !== "all";
+
   return (
     <>
       <LogViewToolbox store={store} lines={resolvedEntries.length} />
       <section className="table-container">
-        <table className="table is-fullwidth">
+        <table
+          className={clsx("table", "is-fullwidth", {
+            "is-hoverable": filteredByCategory,
+          })}
+        >
           <tbody>
             {resolvedEntries.map((entry, i, all) => {
-              const bottomBold = categoryFilterValue === "all" &&
+              const bottomBold = categoryFilter.value === "all" &&
                 i < all.length - 1 &&
                 all[i + 1].index - entry.index > 1;
               return (
-                <tr key={entry.index}>
+                <tr key={entry.index} id={`entry-${entry.index}`}>
                   <MarkerCell
                     marked={markers[entry.index]}
                     onToggle={() => {
@@ -350,7 +398,17 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
                     {entry.inDupGroup && (
                       <DuplicationTag count={entry.duplicateCount} />
                     )}
-                    <LogBody entry={entry} />
+                    <LogBody
+                      entry={entry}
+                      onResetCategoryFilter={filteredByCategory
+                        ? (() => {
+                          categoryFilter.set("all");
+                          setTimeout(() => {
+                            scrollToEntry(entry);
+                          }, 500);
+                        })
+                        : undefined}
+                    />
                   </td>
                 </tr>
               );
