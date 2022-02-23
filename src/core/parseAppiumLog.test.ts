@@ -10,7 +10,7 @@ import {
   parseAppiumLog,
 } from "./parseAppiumLog.ts";
 
-Deno.test("_parseToEntry()", () => {
+Deno.test("_parseToEntry() #1", () => {
   const rawLog = `
 2021-12-21 04:19:10:679 [Appium] Welcome to Appium v1.21.0
 `.trim();
@@ -20,6 +20,37 @@ Deno.test("_parseToEntry()", () => {
     date: new Date("2021-12-21T04:19:10.679Z"),
     body: "Welcome to Appium v1.21.0",
     category: "Appium",
+    level: undefined,
+  };
+  assertEquals(log[0], expected);
+});
+
+Deno.test("_parseToEntry() #2", () => {
+  const rawLog = `
+2022-02-19 19:00:50:657 - [Appium] Appium v1.20.0 creating new XCUITestDriver session
+`.trim();
+
+  const log = _parseToRawEntry(rawLog);
+  const expected: AppiumLogRawEntry = {
+    date: new Date("2022-02-19T19:00:50.657Z"),
+    body: "Appium v1.20.0 creating new XCUITestDriver session",
+    category: "Appium",
+    level: undefined,
+  };
+  assertEquals(log[0], expected);
+});
+
+Deno.test("_parseToEntry() #3", () => {
+  const rawLog = `
+2022-02-19 19:00:50:659 - [debug] [BaseDriver] Creating session with MJSONWP desired capabilities: {
+`.trim();
+
+  const log = _parseToRawEntry(rawLog);
+  const expected: AppiumLogRawEntry = {
+    date: new Date("2022-02-19T19:00:50.659Z"),
+    body: "Creating session with MJSONWP desired capabilities: {",
+    category: "BaseDriver",
+    level: "debug",
   };
   assertEquals(log[0], expected);
 });
@@ -242,6 +273,7 @@ Deno.test("parseAppiumLog()", () => {
         path: "/wd/hub/session/xxx/screenshot",
         shortPath: "/screenshot",
         request: { body: "{}" },
+        requestAt: 1640061054845,
         response: { status: 200, millisecond: 248 },
       }],
       ["2021-12-21T04:30:55.162Z POST /wd/hub/session/xxx/execute/sync", {
@@ -249,6 +281,7 @@ Deno.test("parseAppiumLog()", () => {
         method: "POST",
         path: "/wd/hub/session/xxx/execute/sync",
         shortPath: "/execute/sync",
+        requestAt: 1640061055162,
         request: {
           body:
             '{"script":"mobile:source","args":[{"format":"xml","excludedAttributes":["visible"]}]}',

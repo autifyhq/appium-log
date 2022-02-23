@@ -250,7 +250,7 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
                       "border-bottom-bold": bottomBold,
                     })}
                   >
-                    <Category category={entry.category} />
+                    <Category category={entry.category} level={entry.level} />
                   </td>
                   <td
                     className={clsx("log-body-cell", {

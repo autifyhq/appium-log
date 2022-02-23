@@ -7,6 +7,7 @@ export type AppiumLogRawEntry = {
   date: Date;
   category: string;
   body: string;
+  level?: string;
 };
 
 export type AppiumLogTimestamp = {
@@ -16,6 +17,7 @@ export type AppiumLogTimestamp = {
 
 export type AppiumLogEntry = {
   timestamp: AppiumLogTimestamp;
+  level?: string;
   category: string;
   body: string;
 
@@ -52,7 +54,10 @@ export type AppiumLog = {
 const DUP_GROUP_MAX_LINES = 10;
 
 // yyyy-MM-dd HH:mm:ss:SSS [Category] log body
-const LOG_LINE_PATTERN = /(\d+-\d+-\d+ \d+:\d+:\d+:\d+) \[(.+?)\] (.+)/;
+// yyyy-MM-dd HH:mm:ss:SSS - [Category] log body
+// yyyy-MM-dd HH:mm:ss:SSS - [level] [Category] log body
+const LOG_LINE_PATTERN =
+  /(\d+-\d+-\d+ \d+:\d+:\d+:\d+)(?:\s|\-)+\[(.+?)\]\s(?:\[(.+?)\]\s)?(.+)/;
 
 export const _parseToRawEntry = (log: string): AppiumLogRawEntry[] => {
   const lines = log.split("\n");
@@ -62,13 +67,16 @@ export const _parseToRawEntry = (log: string): AppiumLogRawEntry[] => {
       return null;
     }
 
-    const [_, date, category, body = ""] = match;
+    const [_, date, levelOrCategory, maybeCategory, body = ""] = match;
+    const level = maybeCategory ? levelOrCategory : undefined;
+    const category = maybeCategory || levelOrCategory;
     const entry: AppiumLogRawEntry = {
       date: DateFns.parse(
         date + " Z", // parse as UTC date
         "yyyy-MM-dd HH:mm:ss:SSS X",
         new Date(),
       ),
+      level,
       category,
       body,
     };
@@ -160,7 +168,7 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]): AppiumLog => {
   let isRequestStarting = false;
 
   for (const rawEntry of rawEntries) {
-    const { date, category, body } = rawEntry;
+    const { date, category, body, level } = rawEntry;
     const timestamp: AppiumLogTimestamp = {
       date,
       seconds: (date.getTime() - startDate) / 1000,
@@ -170,6 +178,9 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]): AppiumLog => {
       category,
       body,
     };
+    if (level) {
+      entry.level = level
+    }
     if (_isHttpRequestStarting(rawEntry)) {
       const { method, path } = _parseRequestStart(rawEntry.body);
       const request: AppiumLogHttpRequest = {

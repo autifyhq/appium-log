@@ -17,9 +17,12 @@ export const Timestamp: React.VFC<
   }
 };
 
-export const Category: React.VFC<{ category: string }> = ({ category }) => (
-  <span className="tag is-link">{category}</span>
-);
+export const Category: React.VFC<{ category: string; level?: string }> = (
+  { category, level },
+) =>
+  level === "debug"
+    ? <span className="tag">{category}</span>
+    : <span className="tag is-link">{category}</span>;
 
 export const RequestStartingIcon = () => (
   <span className="icon has-text-info mr-1">
