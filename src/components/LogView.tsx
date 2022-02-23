@@ -178,6 +178,8 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
               return entry.category === categoryFilter.value &&
                 (entry.http?.request?.response?.millisecond ?? 1) >
                   requestDurationFilter.value;
+            } else if (categoryFilter.value === "hide debug") {
+              return entry.level !== "debug";
             } else {
               return entry.category === categoryFilter.value;
             }

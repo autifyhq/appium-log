@@ -1,5 +1,5 @@
 import { React } from "../deps.ts";
-import type { Store, TimestampFormat } from "../core/hooks.ts";
+import type { CategoryFilter, Store, TimestampFormat } from "../core/hooks.ts";
 
 const TitleInput: React.VFC<
   { value: string; onChange: (value: string) => void }
@@ -107,7 +107,7 @@ const TimestampSelect: React.VFC<
 };
 
 const CategoryFilterSelect: React.VFC<
-  { value: string; onChange: (value: "all" | "HTTP") => void }
+  { value: string; onChange: (value: CategoryFilter) => void }
 > = ({ value, onChange }) => {
   return (
     <div className="mr-2">
@@ -115,10 +115,11 @@ const CategoryFilterSelect: React.VFC<
       <div className="control select is-small is-block">
         <select
           value={value}
-          onChange={(ev) => onChange(ev.target.value as "all" | "HTTP")}
+          onChange={(ev) => onChange(ev.target.value as CategoryFilter)}
         >
           <option value="all">all</option>
           <option value="HTTP">HTTP</option>
+          <option value="hide debug">hide debug</option>
         </select>
       </div>
     </div>

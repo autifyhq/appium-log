@@ -60,9 +60,10 @@ const useTimestampFormat = () => {
 };
 
 export const DEFAULT_CATEGORY_FILTER = "all";
+export type CategoryFilter = "all" | "HTTP" | "hide debug";
 
 const useCategoryFilter = () => {
-  const [value, set] = React.useState<"all" | "HTTP">(DEFAULT_CATEGORY_FILTER);
+  const [value, set] = React.useState<CategoryFilter>(DEFAULT_CATEGORY_FILTER);
   return {
     value,
     set,

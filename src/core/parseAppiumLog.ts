@@ -179,7 +179,7 @@ export const _enrichEntries = (rawEntries: AppiumLogRawEntry[]): AppiumLog => {
       body,
     };
     if (level) {
-      entry.level = level
+      entry.level = level;
     }
     if (_isHttpRequestStarting(rawEntry)) {
       const { method, path } = _parseRequestStart(rawEntry.body);
