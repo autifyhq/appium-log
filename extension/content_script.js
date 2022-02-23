@@ -8462,7 +8462,9 @@ const CategoryFilterSelect = ({ value , onChange  })=>{
         value: "all"
     }, "all"), Ue.createElement("option", {
         value: "HTTP"
-    }, "HTTP"))));
+    }, "HTTP"), Ue.createElement("option", {
+        value: "hide debug"
+    }, "hide debug"))));
 };
 const RequestDurationFilter = ({ value , onChange  })=>{
     return Ue.createElement("div", {
@@ -8522,7 +8524,9 @@ const Timestamp = ({ timestamp , format  })=>{
             return null;
     }
 };
-const Category = ({ category  })=>Ue.createElement("span", {
+const Category = ({ category , level  })=>level === "debug" ? Ue.createElement("span", {
+        className: "tag"
+    }, category) : Ue.createElement("span", {
         className: "tag is-link"
     }, category)
 ;
@@ -8735,6 +8739,8 @@ const LogView = ({ appiumLog  })=>{
             } else {
                 if (categoryFilter.value === "HTTP") {
                     return entry.category === categoryFilter.value && (entry.http?.request?.response?.millisecond ?? 1) > requestDurationFilter.value;
+                } else if (categoryFilter.value === "hide debug") {
+                    return entry.level !== "debug";
                 } else {
                     return entry.category === categoryFilter.value;
                 }
@@ -8792,7 +8798,8 @@ const LogView = ({ appiumLog  })=>{
                 "border-bottom-bold": bottomBold
             })
         }, Ue.createElement(Category, {
-            category: entry.category
+            category: entry.category,
+            level: entry.level
         })), Ue.createElement("td", {
             className: o("log-body-cell", {
                 "border-bottom-bold": bottomBold
@@ -8925,7 +8932,7 @@ const findClosestRequest = (requests, condition)=>{
     }
     return requests[minIndex];
 };
-const LOG_LINE_PATTERN = /(\d+-\d+-\d+ \d+:\d+:\d+:\d+) \[(.+?)\] (.+)/;
+const LOG_LINE_PATTERN = /(\d+-\d+-\d+ \d+:\d+:\d+:\d+)(?:\s|\-)+\[(.+?)\]\s(?:\[(.+?)\]\s)?(.+)/;
 const _parseToRawEntry = (log)=>{
     const lines = log.split("\n");
     const entries = lines.map((line)=>{
@@ -8933,9 +8940,12 @@ const _parseToRawEntry = (log)=>{
         if (!match) {
             return null;
         }
-        const [_, date, category, body = ""] = match;
+        const [_, date, levelOrCategory, maybeCategory, body = ""] = match;
+        const level = maybeCategory ? levelOrCategory : undefined;
+        const category = maybeCategory || levelOrCategory;
         const entry = {
             date: DateFns.parse(date + " Z", "yyyy-MM-dd HH:mm:ss:SSS X", new Date()),
+            level,
             category,
             body
         };
@@ -9001,7 +9011,7 @@ const _enrichEntries = (rawEntries)=>{
     let requestStack = [];
     let isRequestStarting = false;
     for (const rawEntry of rawEntries){
-        const { date , category , body  } = rawEntry;
+        const { date , category , body , level  } = rawEntry;
         const timestamp = {
             date,
             seconds: (date.getTime() - startDate) / 1000
@@ -9011,6 +9021,9 @@ const _enrichEntries = (rawEntries)=>{
             category,
             body
         };
+        if (level) {
+            entry.level = level;
+        }
         if (_isHttpRequestStarting(rawEntry)) {
             const { method , path  } = _parseRequestStart(rawEntry.body);
             const request = {
