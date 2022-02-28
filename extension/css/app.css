@@ -10,9 +10,12 @@ td.log-body-cell {
   overflow-wrap: anywhere;
   position: relative;
 }
-td.border-bottom-bold {
+tr.border-bottom-bold td {
   border-bottom-width: 12px;
   border-bottom-style: double;
+}
+tr.borderless-bottom td {
+  border-bottom: none;
 }
 
 .request-bar {
