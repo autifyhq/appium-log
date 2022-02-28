@@ -93,7 +93,9 @@ const LogBody: React.VFC<
       );
     }
   }
-  return <>{entry.body}</>;
+
+  // render with spaces
+  return <>{entry.body.replace(" ", "\u00A0")}</>;
 };
 
 const DuplicationTag: React.VFC<{ count?: number }> = ({ count }) => {
@@ -108,14 +110,12 @@ const DuplicationTag: React.VFC<{ count?: number }> = ({ count }) => {
 };
 
 const MarkerCell: React.VFC<
-  { marked: boolean; onToggle: () => void; bottomBold: boolean }
-> = ({ marked, onToggle, bottomBold }) => {
+  { marked: boolean; onToggle: () => void }
+> = ({ marked, onToggle }) => {
   const [entering, setEntering] = React.useState(false);
   return (
     <td
-      className={clsx("marker-cell", {
-        "border-bottom-bold": bottomBold,
-      })}
+      className={clsx("marker-cell")}
       onMouseEnter={() => setEntering(true)}
       onMouseLeave={() => setEntering(false)}
     >
@@ -216,17 +216,26 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
       <LogViewToolbox store={store} lines={resolvedEntries.length} />
       <section className="table-container">
         <table
-          className={clsx("table", "is-fullwidth", {
+          className={clsx("table", "is-fullwidth", "is-narrow", {
             "is-hoverable": filteredByCategory,
           })}
         >
           <tbody>
             {resolvedEntries.map((entry, i, all) => {
-              const bottomBold = categoryFilter.value === "all" &&
+              const isBottomBold = categoryFilter.value === "all" &&
                 i < all.length - 1 &&
                 all[i + 1].index - entry.index > 1;
+              const isBottomBorderless = entry.category !== "HTTP" &&
+                entry.category === all[i + 1]?.category;
               return (
-                <tr key={entry.index} id={`entry-${entry.index}`}>
+                <tr
+                  key={entry.index}
+                  id={`entry-${entry.index}`}
+                  className={clsx({
+                    "borderless-bottom": isBottomBorderless,
+                    "border-bottom-bold": isBottomBold,
+                  })}
+                >
                   <MarkerCell
                     marked={markers[entry.index]}
                     onToggle={() => {
@@ -235,12 +244,9 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
                         [entry.index]: !markers[entry.index],
                       }));
                     }}
-                    bottomBold={bottomBold}
                   />
                   <td
-                    className={clsx("timestamp-cell", "has-text-grey", {
-                      "border-bottom-bold": bottomBold,
-                    })}
+                    className={clsx("timestamp-cell", "has-text-grey")}
                   >
                     <Timestamp
                       timestamp={entry.timestamp}
@@ -248,16 +254,12 @@ export const LogView: React.VFC<Props> = ({ appiumLog }) => {
                     />
                   </td>
                   <td
-                    className={clsx("has-text-right", {
-                      "border-bottom-bold": bottomBold,
-                    })}
+                    className={clsx("has-text-right")}
                   >
                     <Category category={entry.category} level={entry.level} />
                   </td>
                   <td
-                    className={clsx("log-body-cell", {
-                      "border-bottom-bold": bottomBold,
-                    })}
+                    className={clsx("log-body-cell")}
                     data-request-id={entry.http?.requestId}
                   >
                     {entry.inDupGroup && (
