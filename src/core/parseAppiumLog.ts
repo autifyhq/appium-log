@@ -91,9 +91,11 @@ const HTTP_CATEGORY = "HTTP";
 const HTTP_REQUEST_START_PREFIX = "--> ";
 const HTTP_REQUEST_END_PREFIX = "<-- ";
 // --> GET /wd/hub/session/xxx/screenshot
-const HTTP_REQUEST_START_PATTERN = /^--> (\w+) (\S+)/;
+const HTTP_REQUEST_START_PATTERN = /^--> (?<method>\w+) (?<path>\S+)/;
 // <-- GET /wd/hub/session/xxx/screenshot 200 162 ms - 170916
-const HTTP_REQUEST_END_PATTERN = /^<-- (\w+) (\S+) (\d+) (\d+) ms/;
+// <-- POST /wd/hub/session - - ms - -
+const HTTP_REQUEST_END_PATTERN =
+  /^<-- (?<method>\w+) (?<path>\S+) (?<status>\d+|-) (?<millisecond>\d+|-) ms/;
 
 export const _isHttpRequestStarting = (entry: AppiumLogRawEntry): boolean => {
   return entry.category === HTTP_CATEGORY &&
@@ -111,7 +113,7 @@ export const _parseRequestStart = (entryBody: string) => {
     throw new Error(`Not a http request starting pattern: ${entryBody}`);
   }
 
-  const [_, method, path] = match;
+  const { method, path } = match.groups!;
   return {
     method,
     path,
@@ -142,7 +144,7 @@ export const _parseRequestEnd = (entryBody: string) => {
     throw new Error(`Not a http request ending pattern: ${entryBody}`);
   }
 
-  const [_, method, path, status, millisecond] = match;
+  const { method, path, status, millisecond } = match.groups!;
   return {
     method,
     path,
